@@ -1,12 +1,6 @@
 const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const cleanOptions = {
-    root: '',
-    exclude: [''],
-    verbose: true,
-    dry: false
-}
 
 module.exports = {
     entry: ['@babel/polyfill', './src/js/entry.js', './src/sass/main.scss'],
@@ -18,7 +12,8 @@ module.exports = {
         library: 'EntryPoint',
     },
     module: {
-        rules: [{
+        rules: [
+            {
                 test: /\.js$/,
                 include: [
                     path.resolve(__dirname, 'src/js')
@@ -36,8 +31,7 @@ module.exports = {
                 use: [
                     MiniCssExtractPlugin.loader,
                     'css-loader',
-                    'sass-loader?outputStyle=expanded'
-                    // 'sass-loader?outputStyle=compressed'
+                    'sass-loader'
                 ],
                 exclude: /node_modules/
             }
@@ -46,9 +40,7 @@ module.exports = {
     plugins: [
         // 컴파일 + 번들링 CSS 파일이 저장될 경로와 이름 지정
         new MiniCssExtractPlugin({ filename: 'css/style.css' }),
-        new CleanWebpackPlugin([
-            'dist'
-        ], cleanOptions)
+        new CleanWebpackPlugin()
     ],
     devtool: 'source-map',
     // https://webpack.js.org/concepts/mode/#mode-development
