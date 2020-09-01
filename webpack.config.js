@@ -1,48 +1,70 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-
-module.exports = {
-    entry: ['@babel/polyfill', './src/js/entry.js', './src/sass/main.scss'],
-    // 컴파일 + 번들링된 js 파일이 저장될 경로와 이름 지정
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'js/bundle.js',
-        libraryTarget: 'var',
-        library: 'EntryPoint',
-    },
-    module: {
-        rules: [
+ 
+module.exports = (env, argv) => {
+   let sassSourceMapValue;
+   const config = {
+      entry: [
+         './src/js/entry.js',
+         './src/sass/main.scss',
+         './src/sass/sub.scss'
+      ],
+      output: {
+         path: path.resolve(__dirname, '../public/dist'),
+         filename: 'js/bundle.js',
+      },
+      module: {
+         rules: [
             {
-                test: /\.js$/,
-                include: [
-                    path.resolve(__dirname, 'src/js')
-                ],
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                },
-                exclude: /node_modules/
+               test: /\.js$/,
+               include: [
+                  path.resolve(__dirname, 'src/js')
+               ],
+               exclude: /node_modules/,
+               loader: 'babel-loader',
             },
             {
-                test: /\.scss$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    'sass-loader'
-                ],
-                exclude: /node_modules/
+               test: /\.s[ac]ss$/,
+               use: [
+                  {
+                     loader: 'file-loader',
+                     options: {
+                        outputPath: 'css/',
+                        name: '[name].css',
+                     }
+                  },
+                  'extract-loader',
+                  {
+                     loader: 'css-loader',
+                     options: {
+                        sourceMap: sassSourceMapValue,
+                     }
+                  },
+                  {
+                     loader: 'sass-loader',
+                     options: {
+                        sourceMap: sassSourceMapValue,
+                        sassOptions: {
+                           outputStyle: 'compressed'
+                        }
+                     }
+                  },
+               ],
+               exclude: /node_modules/
             }
-        ]
-    },
-    plugins: [
-        // 컴파일 + 번들링 CSS 파일이 저장될 경로와 이름 지정
-        new MiniCssExtractPlugin({ filename: 'css/style.css' }),
-        new CleanWebpackPlugin()
-    ],
-    devtool: 'source-map',
-    // https://webpack.js.org/concepts/mode/#mode-development
-    mode: 'development'
-};
+         ]
+      },
+   };
+ 
+   if (argv.mode === 'development') {
+      sassSourceMapValue = true;
+      config.devtool = 'source-map';
+   }
+   if (argv.mode === 'production') {
+      sassSourceMapValue = false;
+      config.plugins = [
+         new CleanWebpackPlugin(),
+      ]
+   }
+   return config;
+}
